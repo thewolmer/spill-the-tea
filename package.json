@@ -1,5 +1,5 @@
 {
-  "name": "template",
+  "name": "spill-the-tea",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -15,10 +15,13 @@
     "test": "npx tsx scripts/detectCircularDependencies.ts"
   },
   "dependencies": {
+    "@ai-sdk/google": "^0.0.18",
+    "ai": "^3.1.26",
     "all": "",
     "clsx": "^2.1.1",
     "framer-motion": "^11.1.7",
     "next": "14.2.3",
+    "query-string": "^9.0.0",
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^2.3.0",
