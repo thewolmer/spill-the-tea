@@ -6,6 +6,8 @@ import { generateObject } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
 import z from 'zod';
 
+import { EmotionDataSchema } from '@/types/Responses/EmotionData';
+
 export const maxDuration = 30;
 
 const EmotionReqBodySchema = z.object({
@@ -28,31 +30,7 @@ export async function POST(req: NextRequest) {
 
   Here's the format for the result you should generate in JSON:
   
-  z.object({
-    emotions: z.object({
-      anger: z.number(),
-      anticipation: z.number(),
-      confusion: z.number(),
-      disgust: z.number(),
-      fear: z.number(),
-      gratitude: z.number(),
-      guilt: z.number(),
-      joy: z.number(),
-      love: z.number(),
-      lust: z.number(),
-      optimism: z.number(),
-      pride: z.number(),
-      relief: z.number(),
-      sadness: z.number(),
-      shame: z.number(),
-      surprise: z.number(),
-      trust: z.number(),
-    }),
-    result: z.object({
-      emotion: z.string(),
-      intensity: z.number(),
-    }),
-  }),
+  ${EmotionDataSchema.toString()}
   
   Remember to carefully evaluate the text and assign appropriate values for each emotion category between a scale of 0 to 1 before determining the highest intensity emotion as the top one, put the top emotion and its intensity in result.emotion as shown in the example below.
   
@@ -76,7 +54,6 @@ export async function POST(req: NextRequest) {
         "sadness": 0,
         "shame": 0,
         "surprise": 0,
-        "trust": 0.2,
       },
       "result": {
         "emotion": "love",
@@ -93,32 +70,14 @@ export async function POST(req: NextRequest) {
       mode: 'json',
       prompt,
       schema: z.object({
-        emotions: z.object({
-          anger: z.number(),
-          anticipation: z.number(),
-          confusion: z.number(),
-          disgust: z.number(),
-          fear: z.number(),
-          gratitude: z.number(),
-          guilt: z.number(),
-          joy: z.number(),
-          love: z.number(),
-          lust: z.number(),
-          optimism: z.number(),
-          pride: z.number(),
-          relief: z.number(),
-          sadness: z.number(),
-          shame: z.number(),
-          surprise: z.number(),
-          trust: z.number(),
-        }),
+        emotions: EmotionDataSchema,
         result: z.object({
           emotion: z.string(),
           intensity: z.number(),
         }),
       }),
     });
-    return NextResponse.json({ data: object, status: 200 });
+    return NextResponse.json({ data: object, raw: parsedBody.data.test_subject, status: 200 });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: 'Unexpected server error.', status: 500 });

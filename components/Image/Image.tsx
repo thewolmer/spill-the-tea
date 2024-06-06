@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { blurDataURL, defaultFallbackImage } from './FallbackImage';
 
 type Props = ImageProps & { alt: string; fallbackSrc?: string };
-export const Image = ({ src, fallbackSrc, className, ...rest }: Props) => {
+export const Image = ({ src, fallbackSrc, placeholder, className, ...rest }: Props) => {
   const [imgFail, setImgFail] = useState(false);
   const [oldSrc, setOldSrc] = useState(src);
   if (oldSrc !== src) {
@@ -21,7 +21,7 @@ export const Image = ({ src, fallbackSrc, className, ...rest }: Props) => {
       {...rest}
       src={imgFail ? (fallbackSrc ? fallbackSrc : defaultFallbackImage) : src}
       className={className}
-      placeholder="blur"
+      placeholder={placeholder || 'blur'}
       blurDataURL={blurDataURL}
       onError={() => {
         setImgFail(true);
