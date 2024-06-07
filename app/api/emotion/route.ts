@@ -8,10 +8,13 @@ import z from 'zod';
 
 import { EmotionDataSchema } from '@/types/Responses/EmotionData';
 
+import { prompt_template } from './prompt';
+
 export const maxDuration = 30;
 
 const EmotionReqBodySchema = z.object({
   test_subject: z.string().min(1, { message: 'test_subject must be at least 1 character long' }),
+  model: z.string().optional().default('flash'),
 });
 
 export async function POST(req: NextRequest) {
@@ -26,47 +29,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMessage, status: 401 });
   }
 
-  const prompt = `As an AI with a deep understanding of human emotions, your task is to analyze text input and rate it on a scale of 0 to 1 in various emotional categories such as anger, anticipation, confusion, disgust, fear, gratitude, guilt, joy, love, lust, optimism, pride, relief, sadness, shame, surprise, and trust. Your ultimate goal is to provide an overall emotional assessment for the text.
+  let prompt;
+  let rawText;
 
-  Here's the format for the result you should generate in JSON:
-  
-  ${EmotionDataSchema.toString()}
-  
-  Remember to carefully evaluate the text and assign appropriate values for each emotion category between a scale of 0 to 1 before determining the highest intensity emotion as the top one, put the top emotion and its intensity in result.emotion as shown in the example below.
-  
-  For a textual example, if a passage exudes slight happiness, mild excitement, and a tinge of sadness, the intensity could look like this:
-  
-    {
-      "emotions": {
-        "anger": 0,
-        "anticipation": 0.1,
-        "confusion": 0,
-        "disgust": 0,
-        "fear": 0,
-        "gratitude": 0.0,
-        "guilt": 0,
-        "joy": 0.1,
-        "love": 0.6,
-        "lust": 0.1,
-        "optimism": 0,
-        "pride": 0.2,
-        "relief": 0.1,
-        "sadness": 0,
-        "shame": 0,
-        "surprise": 0,
-      },
-      "result": {
-        "emotion": "love",
-        "intensity": 0.5
-      }
-    }
-  
-  the text to analyze is: ${parsedBody.data.test_subject}
-  `;
+  const isTweet = parsedBody.data.test_subject.startsWith('https://x.com/');
+
+  if (isTweet) {
+    const widget = await fetch(`https://publish.twitter.com/oembed?url=${parsedBody.data.test_subject.trim()}`).then(
+      (res) => res.json(),
+    );
+    rawText = twitterHtmlToRawText(widget.html);
+    prompt = `${prompt_template}\n Text to analyze is : ${rawText}`;
+  }
+  console.log(parsedBody.data.test_subject);
+
+  prompt = `${prompt_template}\n Text to analyze is : ${parsedBody.data.test_subject}`;
 
   try {
     const { object } = await generateObject({
-      model: google('models/gemini-1.5-pro-latest'),
+      model: google(
+        parsedBody.data.model === 'pro' ? 'models/gemini-1.5-pro-latest' : 'models/gemini-1.5-flash-latest',
+      ),
       mode: 'json',
       prompt,
       schema: z.object({
@@ -77,7 +60,7 @@ export async function POST(req: NextRequest) {
         }),
       }),
     });
-    return NextResponse.json({ data: object, raw: parsedBody.data.test_subject, status: 200 });
+    return NextResponse.json({ data: object, raw: isTweet ? rawText : parsedBody.data.test_subject, status: 200 });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: 'Unexpected server error.', status: 500 });
@@ -87,3 +70,17 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return NextResponse.json({ error: 'Method not allowed.', status: 405 });
 }
+
+const twitterHtmlToRawText = (html: string) => {
+  const tweetMatch = html.match(/<p[^>]*>([\s\S]*?)<\/p>/);
+  if (!tweetMatch) {
+    return '';
+  }
+
+  // eslint-disable-next-line prefer-destructuring
+  const tweetContent = tweetMatch[1];
+
+  const rawText = tweetContent.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, '');
+
+  return rawText.trim();
+};

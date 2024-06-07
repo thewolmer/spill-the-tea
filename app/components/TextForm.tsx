@@ -14,17 +14,13 @@ export const TextForm = () => {
   const [selected_model, setSelected_model] = useState('flash');
   const { isLoading, setEmotion, setLoading } = useStoreEmotion();
 
-  const reset = () => {
-    setTest_subject('');
-  };
-
   const onClick = async () => {
     setLoading(true);
     const emotion = await getEmotion(test_subject, selected_model);
     console.log(emotion);
     setEmotion(emotion);
     setLoading(false);
-    reset();
+    setTest_subject('');
   };
 
   return (

@@ -48,7 +48,14 @@ export const ResultsSection = () => {
               .map((key: string) => (
                 <div key={key} className="flex w-full items-center justify-end">
                   <div className="flex w-40 items-center justify-start gap-2">
-                    <Image src={`/assets/emojis/${key}.png`} alt={key} width={50} height={50} className="h-6 w-6" />
+                    <Image
+                      src={`/assets/emojis/${key}.png`}
+                      placeholder="empty"
+                      alt={key}
+                      width={50}
+                      height={50}
+                      className="h-6 w-6"
+                    />
                     <span className="capitalize">{key}</span>
                   </div>
                   <div className="flex w-full items-center justify-center">

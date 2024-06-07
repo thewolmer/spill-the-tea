@@ -74,15 +74,15 @@ export default function Home() {
             alt="icon"
             width={100}
             height={100}
-            className={cn(
-              'absolute',
-              emoji.left && `left-[${emoji.left}]`,
-              emoji.right && `right-[${emoji.right}]`,
-              emoji.top && `top-[${emoji.top}]`,
-              emoji.rotate && `rotate-[${emoji.rotate}]`,
-              emoji.blur && `blur-[${emoji.blur}]`,
-              emoji.width && `w-[${emoji.width}]`,
-            )}
+            placeholder="empty"
+            className="absolute -z-10"
+            style={{
+              left: emoji.left,
+              right: emoji.right,
+              top: emoji.top,
+              rotate: emoji.rotate,
+              filter: `blur (${emoji.blur})`,
+            }}
           />
         ))}
 
